@@ -79,7 +79,7 @@ const Header=()=>{
 
     return (
       <>
-    <header className="sticky top-0 z-50 bg-white/20 md:flex justify-between items-center px-20 py-4 hidden mt-10 rounded-full backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 bg-white/60 md:flex m-0 justify-between items-center px-20 py-4 hidden mt-10 shadow-md rounded-3xl backdrop-blur-2xl">
     <div className="flex w-full justify-around ">
         <div className="text-3xl font-bold text-purple-500 flex"> <RiMentalHealthLine className="text-purple-400"/>  Safe<span className="text-purple-500">Space.ai</span></div>
         <nav className="hidden md:flex space-x-6 text-sm font-medium mr-4">
