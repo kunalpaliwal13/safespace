@@ -59,7 +59,7 @@ Use the tone and flow of the following real therapist conversations as style ins
 Your job is to make the user feel heard, supported, and gently encouraged — while carrying the conversation forward with empathy and insight.
 """
 
-        model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('models/gemini-2.0-flash')
         chat = model.start_chat(history=[
             {"role": "user", "parts": [prompt]},
             {"role": "model", "parts": ["Understood. I will offer supportive, non-clinical, empathetic responses."]}
