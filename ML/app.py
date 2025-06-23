@@ -1,22 +1,41 @@
 from flask import Flask, request, jsonify
-import google.generativeai as genai
-from dotenv import load_dotenv
-import os
 from flask_cors import CORS
-import numpy as np
-import faiss
+import os
 import json
-import ollama
+import faiss
+import numpy as np
+import torch
+from dotenv import load_dotenv
+import google.generativeai as genai
+from transformers import AutoTokenizer, AutoModel
 
+# Load environment variables
+load_dotenv()
+api_key = os.getenv("API_KEY")
+genai.configure(api_key=api_key)
+
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
+
+# Load embedding model once
+tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
+embed_model = AutoModel.from_pretrained("BAAI/bge-base-en-v1.5")
+
+# Load FAISS index and metadata once
+index = faiss.read_index("RAG/index.faiss")
+with open("RAG/meta.json", "r") as f:
+    meta = json.load(f)
+    body_list = meta["body_list"]
+
+# In-memory user session store
 conversation_sessions = {}
 
-prompt= '''You are a kind, supportive, and empathetic mental wellness assistant named "Solace." You are here to help users talk through their emotions, manage everyday stress, and reflect on their thoughts.
-You are a helpful chatbot.
-Use the following pieces of context aswell to frame your answer, these are a few bits of therapist conversations i found. Do not keep asking the user to tell more be assertive and have a conversation but don't just exactly copy the text ans ask questions. But yeah, use this tone:
-{context}
-'''
+def get_embedding(text):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    with torch.no_grad():
+        embeddings = embed_model(**inputs).last_hidden_state.mean(dim=1)
+    return embeddings[0].numpy().reshape(1, -1).astype('float32')
 
 @app.route('/')
 def home():
@@ -24,26 +43,16 @@ def home():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    load_dotenv()
-    api_key = os.getenv("API_KEY")
-    genai.configure(api_key=api_key)
-
     data = request.json
     query = data['message']
-    user_id = data.get('userId', 'default')  # fallback to 'default'
+    user_id = data.get('userId', 'default')  # fallback for single-user
 
     global conversation_sessions
 
+    # On first message, build RAG + prompt and start new chat
     if user_id not in conversation_sessions:
-        # RAG + prompt setup only on first request
-        EMBEDDING_MODEL = 'hf.co/CompendiumLabs/bge-base-en-v1.5-gguf'
-        index = faiss.read_index("RAG/index.faiss")
-        with open("RAG/meta.json", "r") as f:
-            meta = json.load(f)
-            body_list = meta["body_list"]
-
-        query_vector = ollama.embed(model=EMBEDDING_MODEL, input=query)['embeddings']
-        D, I = index.search(np.array([query_vector[0]], dtype='float32'), k=3)
+        query_vector = get_embedding(query)
+        D, I = index.search(query_vector, k=3)
         context = "\n\n".join([body_list[i] for i in I[0]])
 
         prompt = f"""
@@ -58,7 +67,7 @@ Use the tone and flow of the following real therapist conversations as style ins
 
 Your job is to make the user feel heard, supported, and gently encouraged — while carrying the conversation forward with empathy and insight.
 """
-        print("Prompt being used:", prompt[:300])
+
         model = genai.GenerativeModel('models/gemini-2.0-flash')
         chat = model.start_chat(history=[
             {"role": "user", "parts": [prompt]},
@@ -68,11 +77,9 @@ Your job is to make the user feel heard, supported, and gently encouraged — wh
     else:
         chat = conversation_sessions[user_id]
 
-    # Continue the conversation
+    # Send user message and get response
     response = chat.send_message(query)
     return jsonify({"response": response.text})
 
-
-
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5002)
+    app.run(host="0.0.0.0", port=5002)  # 0.0.0.0 allows external access in prod
