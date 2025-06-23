@@ -6,3 +6,4 @@ requests==2.31.0
 scikit-learn==1.6.1
 ollama==0.5.1
 faiss-cpu==1.11.0
+gunicorn
