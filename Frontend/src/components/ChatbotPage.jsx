@@ -3,6 +3,8 @@ import { PaperAirplaneIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/
 import { IoIosSend } from "react-icons/io";
 import axios from 'axios';
 import Header from './Header';
+import { useLocation, useNavigate } from "react-router-dom";
+import {motion} from "framer-motion";
 
 
 const ChatbotPage = () => {
@@ -16,17 +18,28 @@ const ChatbotPage = () => {
   const [input, setInput] = useState("");
   const [User, setUser] = useState(null);
   const chatEndRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Scroll to bottom on new message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(()=>{
+    const token = localStorage.getItem('token');
+    if (!token) {
+        navigate('/login',{ state: { from: location.pathname } });
+        }
+  })
+
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
+      
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/user', {
+
+      try {  
+        const response = await axios.get('https://safespace-backend-6him.onrender.com/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -35,6 +48,7 @@ const ChatbotPage = () => {
         setUser(response.data);
       } catch (err) {
         console.error(err);
+        navigate('/login', { state: { from: location.pathname } });
       }
     };
   
@@ -54,7 +68,7 @@ const ChatbotPage = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    const response = await axios.post("http://localhost:5002/chat", {
+    const response = await axios.post("https://safespace-backend-ai.onrender.com/chat", {
       message: userMessage.text,
       userId: `${User._id}`
     });
@@ -81,8 +95,10 @@ const ChatbotPage = () => {
 
   return (
     <>
-    <div className="bg-white w-screen">
-      <Header/>
+    <div className="w-screen flex justify-center items-center">
+    <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className=' md:w-[90%] fixed z-50 top-0 lg:w-[60%]'>
+          <Header/>
+      </motion.div>
     </div>
     <div className="md:px-20 bg-transparent flex md:flex-col justify-center min-w-screen min-h-screen items-center bg-[url('/images/bg.jpg')] ">
     

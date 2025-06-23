@@ -1,9 +1,8 @@
 import React, {useState, useEffect} from "react";
-import { Link } from "react-router-dom";
-import { FaPlay } from "react-icons/fa";
 import axios from 'axios';
 import Header from "../components/Header";
 import Footer from "./Footer";
+import { motion } from "framer-motion";
 
 
 const exerciseList = [
@@ -102,7 +101,7 @@ const ExercisesResourcesPage = () => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token'); 
-        const response = await axios.get('http://localhost:5000/api/user', {
+        const response = await axios.get('https://safespace-backend-6him.onrender.com/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,  
         }}
@@ -125,15 +124,17 @@ const ExercisesResourcesPage = () => {
   }
 
   return (
-    <div className="flex flex-col bg-white text-gray-800 w-screen">
-      <Header />
+    <div className="flex flex-col bg-white text-gray-800  justify-center items-center w-screen">
+      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='lg:w-[60%] md:w-[90%] fixed z-50 top-0'>
+          <Header/>
+      </motion.div>
       
 
       
     
 
       <main className="flex-grow md:py-15">
-        <div className="min-w-screen bg-purple-50 md:h-50 ml-0 py-10 mb-10">
+        <div className="min-w-screen flex justify-center items-center flex-col mt-20 bg-white md:h-50 ml-0 py-10 mb-10">
         <h1 className="text-5xl font-bold text-black-700 mb-6">Exercises & Resources</h1>
         <p className="text-gray-500 text-xl px-15 md:px-0">Discover tools and techniques to support your mental well-being journey</p>
         </div>
@@ -154,7 +155,7 @@ const ExercisesResourcesPage = () => {
 
           
         <section className="mb-12 bg-purple-50 py-10">
-          <h2 className="text-3xl font-bold text-gray-700 mb-8">Guided Exercises</h2>
+          <h2 className="text-3xl font-bold text-gray-700 mb-8 flex justify-center items-center">Guided Exercises</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 md:px-40">
             { exerciseList.filter((exercise) =>
                   selectedTag ? exercise.tags.includes(selectedTag) : true

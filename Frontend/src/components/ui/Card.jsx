@@ -19,7 +19,7 @@ function Card({heading, desc, icon: Icon}) {
       </h3>
 
       {/* Description */}
-      <p className="text-gray-600 mb-6 leading-relaxed">
+      <p className="text-gray-600 mb-6 md:text-sm lg:text-lg leading-relaxed">
         {desc}
       </p>
 

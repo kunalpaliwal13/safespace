@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Calendar } from "lucide-react";
 import Header from "./Header";
-import { BsFillJournalBookmarkFill } from "react-icons/bs";
 import axios from 'axios';
+import { motion } from "framer-motion";
 
 const moods = ["Great", "Good", "Neutral", "Bad", "Terrible"];
 const emojis = ["😄", "🙂", "😐", "😕", "😞"];
@@ -31,7 +31,7 @@ export default function MoodJournal() {
       setNote("");
       setSelectedMood(null);
       try{
-        const response = await fetch('http://localhost:5000/api/journal', {
+        const response = await fetch('https://safespace-backend-6him.onrender.com/api/journal', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export default function MoodJournal() {
       const fetchUserData = async () => {
         try {
           const token = localStorage.getItem('token'); 
-          const response = await axios.get('http://localhost:5000/api/user', {
+          const response = await axios.get('https://safespace-backend-6him.onrender.com/user', {
             headers: {
               Authorization: `Bearer ${token}`,  
           }}
@@ -102,7 +102,7 @@ export default function MoodJournal() {
       if (!userId) return;
       const fetchEntries = async () => {
         try {
-          const response = await fetch(`http://localhost:5000/api/journal/${userId}`);
+          const response = await fetch(`https://safespace-backend-6him.onrender.com/api/journal/${userId}`);
           const data = await response.json();
           if (response.ok) {
             setEntries(data); 
@@ -122,7 +122,7 @@ export default function MoodJournal() {
         const sendNotif = async ()=>{
           try {
             const timestamp = new Date().toISOString(); // ISO format with Z included by default
-            await axios.post("http://localhost:5000/notify-admin", {
+            await axios.post("https://safespace-backend-6him.onrender.com/notify-admin", {
               message: '',
               userId: userId,
               timestamp: timestamp,
@@ -136,8 +136,12 @@ export default function MoodJournal() {
 
 
   return (
-    <div className=" font-sans overflow-x-hidden text-gray-800 bg-white w-screen overflow-y-scroll bg-fixed bg-no-repeat bg-[url('/images/bg.jpg')] ">
-      <Header/> 
+    <div className=" font-sans overflow-x-hidden text-gray-800 bg-white w-screen overflow-y-scroll bg-fixed bg-no-repeat bg-[url('/images/bg.jpg')] h-screen py-40 ">
+      <div className="w-full flex justify-center items-center">
+      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='lg:w-[60%] md:w-[90%] fixed z-50 top-0'>
+          <Header/>
+      </motion.div>
+      </div>
       
 
       <div className="grid md:grid-cols-3 gap-6 px-10 md:px-80 mt-10">

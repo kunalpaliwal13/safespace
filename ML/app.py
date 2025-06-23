@@ -84,7 +84,7 @@ def chat():
         print("suicide")
         try:
             timestamp = datetime.datetime.utcnow().isoformat() + "Z"
-            requests.post("http://localhost:5000/notify-admin", json={
+            requests.post("https://safespace-backend-6him.onrender.com/notify-admin", json={
                 "message": user_message,
                 "userId": user_id,
                 "timestamp": timestamp,

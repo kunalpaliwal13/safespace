@@ -1,15 +1,18 @@
-import React from 'react'
-import Header from './Header'
+import React, { useEffect } from 'react'
+import Header from '../Header'
 import { Button } from "@/components/ui/button";
 import { ArrowRight, AudioLines, MessageSquareQuote, Settings } from "lucide-react";
 import { motion, useScroll, useTransform } from 'framer-motion';
-import Card from './ui/Card';
+import Card from '../ui/Card';
+import { useNavigate } from 'react-router-dom';
+import {Contact7} from "../ui/Contact"
 
 
 
 function Hero() {
   const { scrollYProgress } = useScroll(); 
   const scale = useTransform(scrollYProgress, [0,1], [1, 0.9]);
+  const navigate = useNavigate();
 
   const cardItems=[
     {'heading': 'AI-Powered Therapy', 'desc': 'Real-time, anonymous mental health support through AI-based therapists. SafeSpace connects users to tailored therapy sessions, offering emotional guidance and assistance anytime.', 'icon': MessageSquareQuote},
@@ -18,28 +21,38 @@ function Hero() {
     
   ]
 
-  return (
-    <div className='h-screen w-screen flex flex-col items-center bg-[#fdfbfe]'>
 
+  const getChat = () => {
+      navigate('/chatbot');
+  };
+
+  return (
+    <div className='h-screen w-screen flex flex-col items-center bg-white relative'>
+      {/* <motion.div className='bottom-0 flex flex-col right-5 fixed z-50 w-[20%] rounded-t-2xl bg-white border-2 shadow-2xs border-purple-200'>
+        <div className='flex justify-between  pt-3 px-2'>Chatbot <ChevronsUp className='text-purple-600' onClick={getChat} /></div>
+        <motion.div className='min-h-100 bg-purple-50 mt-2 w-full'>
+
+        </motion.div>
+        </motion.div> */}
     
       {/* progress-bar */}
       <motion.div className='w-full bg-purple-400 h-2 fixed top-0 origin-left z-50' style={{ scaleX: scrollYProgress }}/>
       
       {/* header      */}
-      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='w-[60%] fixed z-50 top-0'>
+      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='lg:w-[60%] md:w-[90%] fixed z-50 top-0'>
           <Header/>
       </motion.div>
       
       {/* main hero section  */}
-      <motion.div style={{ scale }} className='fixed top-30'>
-        <motion.div animate={{opacity:[0, 1], y:[30,0]}} transition={{duration: 2}} id='herosec' className=' px-100 flex flex-col mb-20 items-center'>
+      <motion.div style={{ scale }} className='fixed top-30 '>
+        <motion.div animate={{opacity:[0, 1], y:[30,0]}} transition={{duration: 2}} id='herosec' className=' lg:px-100 md:px-30 flex flex-col mb-20 items-center'>
 
-            <h1 className='text-gray-900 mt-10 text-[60px] font-semibold text-center leading-18'>Mental Health Support,<br/> <span className='text-[60px]'>anytime You Need It</span></h1>
-            <p className='text-gray-900 text-[18px] mt-10 text-center'>Access calming tools, connect with our AI companion for supportive conversations, and explore guided exercises designed to ease stress, boost your mood, and help you feel more in control one step at a time.</p>
+            <h1 className='text-gray-900 mt-10  md:text-[40px] sm:text-[40px] lg:text-[60px] font-semibold text-center leading-18'>Mental Health Support,<br/> <span className='md:text-[40px] lg:text-[60px]'>anytime You Need It</span></h1>
+            <p className='text-gray-900 md:text-[18px] lg:text-[18px] mt-10 text-center '>Access calming tools, connect with our AI companion for supportive conversations, and explore guided exercises designed to ease stress, boost your mood, and help you feel more in control one step at a time.</p>
 
             <div className='flex gap-6 mt-10'>
-            <Button onClick={{}} className="group bg-purple-700 hover:bg-purple-500 p-5 text-base font-semibold rounded-lg">
-                <a href='chatbot'>Let's start</a><ArrowRight className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5" size={16} strokeWidth={2} aria-hidden="true"/>
+            <Button onClick={getChat} className="group bg-purple-700 hover:bg-purple-500 p-5 text-base font-semibold rounded-lg">
+                Let's start<ArrowRight className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5" size={16} strokeWidth={2} aria-hidden="true"/>
             </Button>
              <Button variant="outline" className='p-5 text-base font-semibold text-gray-700'>
                 Learn More
@@ -50,12 +63,12 @@ function Hero() {
 
 
     {/* our-services  */}
-    <div id="our-services" className='px-100 bg-[#fdfbfe] flex justify-center w-full mt-20 rounded-3xl relative top-120'>
+    <div id="our-services" className='lg:px-100 md:px-20 bg-[#fdfbfe] flex justify-center w-full mt-20 rounded-3xl relative top-120'>
       
 
       <div className=' w-full flex py-10 flex-col items-center'>
         
-        <motion.h1 animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='text-purple-600 text-4xl mb-10 font-semibold'> Our Services </motion.h1>
+        <motion.h1 animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='text-purple-600 md:text-3xl lg:text-4xl mb-10 font-semibold'> Our Services </motion.h1>
 
         {/* cards  */}
         <motion.div animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='flex gap-10'>
@@ -68,7 +81,7 @@ function Hero() {
     </div>
 
 
-    <div className='px-100 bg-[#fdfbfe] flex flex-col justify-center items-center w-full mt-20 rounded-3xl relative top-100 pt-20 rounded-t-3xl'>
+    <div className='lg:px-100 md:px-10 bg-[#fdfbfe] flex flex-col justify-center items-center w-full mt-20 rounded-3xl relative top-100 pt-20 rounded-t-3xl'>
      <motion.div className='text-3xl text-gray-900 font-bold px-40'  initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 0.8, ease: "easeInOut" }} viewport={{ once: true, amount: 0.5 }}>
         “SafeSpace makes me feel heard, even on my hardest days. The support feels personal and real.”
       </motion.div>
@@ -77,9 +90,14 @@ function Hero() {
       </motion.div>
     </div>
 
-    <div className=' relative top-100 w-full px-100'>
+<div id ='contact' className='mt-100 bg-white z-50'>
+
+    <Contact7/>
+</div>
+
+    {/* <div className=' relative top-100 w-full px-100'>
       <div className='h-0.5 w-full relative bg-gray-200 mb-5'></div>
-    </div>
+    </div> */}
 
 
     

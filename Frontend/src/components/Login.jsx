@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
   const [activeTab, setActiveTab] = useState("login");
+  const location = useLocation();
+  const from = location.state?.from || '/';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,13 +17,13 @@ export default function AuthPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axios.post("https://safespace-backend-6him.onrender.com/api/login", {
         email: formData.email,
         password: formData.password,
       });
       localStorage.setItem("token", res.data.token);
       alert("Login successful!");
-      navigate('/');
+      navigate(from);
     } catch (err) {
       console.error(err);
       alert("Login failed.");
@@ -31,7 +33,7 @@ export default function AuthPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/register", {
+      const res = await axios.post("https://safespace-backend-6him.onrender.com/api/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
