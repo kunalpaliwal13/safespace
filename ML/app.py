@@ -58,7 +58,7 @@ Use the tone and flow of the following real therapist conversations as style ins
 
 Your job is to make the user feel heard, supported, and gently encouraged — while carrying the conversation forward with empathy and insight.
 """
-
+        print("Prompt being used:", prompt[:300])
         model = genai.GenerativeModel('models/gemini-2.0-flash')
         chat = model.start_chat(history=[
             {"role": "user", "parts": [prompt]},
@@ -75,4 +75,4 @@ Your job is to make the user feel heard, supported, and gently encouraged — wh
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5002, debug=True)
+    app.run(host="127.0.0.1", port=5002)
