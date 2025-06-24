@@ -28,14 +28,7 @@ function Hero() {
 
   return (
     <div className='h-screen w-screen flex flex-col items-center bg-white relative'>
-      {/* <motion.div className='bottom-0 flex flex-col right-5 fixed z-50 w-[20%] rounded-t-2xl bg-white border-2 shadow-2xs border-purple-200'>
-        <div className='flex justify-between  pt-3 px-2'>Chatbot <ChevronsUp className='text-purple-600' onClick={getChat} /></div>
-        <motion.div className='min-h-100 bg-purple-50 mt-2 w-full'>
-
-        </motion.div>
-        </motion.div> */}
-    
-      {/* progress-bar */}
+      
       <motion.div className='w-full bg-purple-400 h-2 fixed top-0 origin-left z-50' style={{ scaleX: scrollYProgress }}/>
       
       {/* header      */}
@@ -52,7 +45,7 @@ function Hero() {
 
             <div className='flex gap-6 mt-10'>
             <Button onClick={getChat} className="group bg-purple-700 hover:bg-purple-500 p-5 text-base font-semibold rounded-lg">
-                Let's start<ArrowRight className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5" size={16} strokeWidth={2} aria-hidden="true"/>
+                Chat Now<ArrowRight className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5" size={16} strokeWidth={2} aria-hidden="true"/>
             </Button>
              <Button variant="outline" className='p-5 text-base font-semibold text-gray-700'>
                 Learn More

@@ -103,7 +103,7 @@ const ChatbotPage = () => {
 
 
     <div className="w-screen flex justify-center items-center z-50">
-    <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className=' md:w-[90%] fixed z-50 top-0 lg:w-[60%] z-50'>
+    <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className=' md:w-[90%] fixed z-50 top-0 lg:w-[60%]'>
           <Header className="z-50"/>
       </motion.div>
     </div>

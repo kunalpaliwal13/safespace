@@ -119,9 +119,7 @@ const Header=()=>{
           <a href="/" className=" text-base text-gray-500 hover:text-purple-600 z-50" style = {{textDecoration: "none"}}>Home</a>
           <a href={User? "/journal": "/login"} className="text-gray-500 text-base hover:text-purple-600 z-50" style = {{textDecoration: "none"}}>Journal</a>
           <a href="/exercises" className="text-gray-500  text-base hover:text-purple-600 z-50" style = {{textDecoration: "none"}}>Exercises</a>
-          {isHome ? (
-          <ScrollLink to="contact" smooth={true} duration={500} offset={-70} className="text-gray-500 text-base hover:text-purple-600 cursor-pointer">Contact Us</ScrollLink>
-          ) : ( <Link to="/#contact" className="text-gray-500 text-base hover:text-purple-600">Contact Us</Link>)}
+
           {
           User ? 
             <>
