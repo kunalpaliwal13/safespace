@@ -28,7 +28,7 @@ export const Contact7 = ({
   phone = "+123 456 7890",
 }: Contact7Props) => {
   return (
-    <section className="bg-background py-32">
+    <section className="bg-background py-32 md:px-10">
       <div className="container">
         <div className="mb-14">
           <h1 className="mt-2 mb-3 text-3xl font-semibold text-balance md:text-4xl">

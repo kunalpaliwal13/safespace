@@ -5,7 +5,7 @@ import React from 'react'
 function Card({heading, desc, icon: Icon}) {
 
   return (
-    <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full font-inter hover:translate-y-[-10px]" style={{'transition': 'all 0.3s ease-in-out'}}>
+    <div className="lg:bg-white md:bg-white bg-[#f8f8f8] rounded-xl lg:shadow-xl md:shadow-xl p-6 max-w-sm w-full font-inter hover:translate-y-[-10px]" style={{'transition': 'all 0.3s ease-in-out'}}>
       {/* Icon Circle */}
       <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
         {/* Chat Bubbles Icon (SVG similar to image) */}

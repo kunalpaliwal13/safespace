@@ -27,21 +27,21 @@ function Hero() {
   };
 
   return (
-    <div className='h-screen w-screen flex flex-col items-center bg-white relative'>
+    <div className='h-screen w-screen flex flex-col items-center bg-white relative lg:overflow-x-visible md:overflow-visible overflow-x-hidden'>
       
-      <motion.div className='w-full bg-purple-400 h-2 fixed top-0 origin-left z-50' style={{ scaleX: scrollYProgress }}/>
+      <motion.div className='w-full bg-purple-400 h-2 md:fixed lg:fixed absolute top-0 origin-left z-50' style={{ scaleX: scrollYProgress }}/>
       
       {/* header      */}
-      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='lg:w-[60%] md:w-[90%] fixed z-50 top-0'>
+      <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className='lg:w-[60%] md:w-[90%] fixed z-50 top-0 w-full'>
           <Header/>
       </motion.div>
       
       {/* main hero section  */}
-      <motion.div style={{ scale }} className='fixed top-30 '>
-        <motion.div animate={{opacity:[0, 1], y:[30,0]}} transition={{duration: 2}} id='herosec' className=' lg:px-100 md:px-30 flex flex-col mb-20 items-center'>
+      <motion.div style={{ scale }} className='lg:fixed md:fixed absolute md:top-30 top-25 lg:top-30 '>
+        <motion.div animate={{opacity:[0, 1], y:[30,0]}} transition={{duration: 2}} id='herosec' className=' lg:px-100 md:px-30 flex flex-col lg:mb-20 md:mb-20 items-center '>
 
-            <h1 className='text-gray-900 mt-10  md:text-[40px] sm:text-[40px] lg:text-[60px] font-semibold text-center leading-18'>Mental Health Support,<br/> <span className='md:text-[40px] lg:text-[60px]'>anytime You Need It</span></h1>
-            <p className='text-gray-900 md:text-[18px] lg:text-[18px] mt-10 text-center '>Access calming tools, connect with our AI companion for supportive conversations, and explore guided exercises designed to ease stress, boost your mood, and help you feel more in control one step at a time.</p>
+            <h1 className='text-gray-900 lg:mt-10 md:text-[40px] lg:text-[60px] text-[32px] font-semibold text-center lg:leading-18 md:leading-18 md:mt-10'>Mental Health Support,<br/> <span className='md:text-[40px] lg:text-[60px]'>anytime You Need It</span></h1>
+            <p className='text-gray-900 md:text-[18px] lg:text-[18px] mt-10 text-center px-5'>Access calming tools, connect with our AI companion for supportive conversations, and explore guided exercises designed to ease stress, boost your mood, and help you feel more in control one step at a time.</p>
 
             <div className='flex gap-6 mt-10'>
             <Button onClick={getChat} className="group bg-purple-700 hover:bg-purple-500 p-5 text-base font-semibold rounded-lg">
@@ -56,15 +56,15 @@ function Hero() {
 
 
     {/* our-services  */}
-    <div id="our-services" className='lg:px-100 md:px-20 bg-[#fdfbfe] flex justify-center w-full mt-20 rounded-3xl relative top-120'>
+    <div id="our-services" className='lg:px-[15%] md:px-[5%] bg-[#fdfbfe]  flex  justify-center w-full mt-20 rounded-3xl relative top-100 md:top-120 lg:top-120'>
       
 
-      <div className=' w-full flex py-10 flex-col items-center'>
+      <div className=' w-full flex flex-col py-10 px-5 items-center'>
         
-        <motion.h1 animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='text-purple-600 md:text-3xl lg:text-4xl mb-10 font-semibold'> Our Services </motion.h1>
+        <motion.h1 animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='text-purple-600 md:text-3xl lg:text-4xl text-3xl mb-10 font-semibold'> Our Services </motion.h1>
 
         {/* cards  */}
-        <motion.div animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='flex gap-10'>
+        <motion.div animate={{opacity : [0,1], y:[30,0]}} transition={{duration: 2}} className='flex lg:flex-row md:flex-row flex-col lg:gap-10 md:gap-5 gap-10'>
           {cardItems.map((item, index)=>(
             <Card  key={index} heading={item.heading} desc={item.desc} icon={item.icon}/>
          ))}
@@ -74,8 +74,8 @@ function Hero() {
     </div>
 
 
-    <div className='lg:px-100 md:px-10 bg-[#fdfbfe] flex flex-col justify-center items-center w-full mt-20 rounded-3xl relative top-100 pt-20 rounded-t-3xl'>
-     <motion.div className='text-3xl text-gray-900 font-bold px-40'  initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 0.8, ease: "easeInOut" }} viewport={{ once: true, amount: 0.5 }}>
+    <div className='lg:px-100 md:px-10 bg-[#fdfbfe] flex flex-col justify-center items-center w-full lg:mt-20 md:mt-20 rounded-3xl relative top-100 pt-20 rounded-t-3xl'>
+     <motion.div className='text-3xl text-gray-900 font-bold md:px-40 lg:px-40 px-10'  initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 0.8, ease: "easeInOut" }} viewport={{ once: true, amount: 0.5 }}>
         “SafeSpace makes me feel heard, even on my hardest days. The support feels personal and real.”
       </motion.div>
       <motion.div className='flex items-center my-10 text-gray-700 text-lg font-bold' initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 0.8, ease: "easeInOut" }} viewport={{ once: true, amount: 0.5 }}>
@@ -87,10 +87,6 @@ function Hero() {
 
     <Contact7/>
 </div>
-
-    {/* <div className=' relative top-100 w-full px-100'>
-      <div className='h-0.5 w-full relative bg-gray-200 mb-5'></div>
-    </div> */}
 
 
     

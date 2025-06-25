@@ -8,6 +8,8 @@ import torch
 from dotenv import load_dotenv
 import google.generativeai as genai
 from transformers import AutoTokenizer, AutoModel
+import uuid
+from Data_Logging.logger import log_interaction 
 
 # Load environment variables
 load_dotenv()
@@ -31,6 +33,7 @@ with open("RAG/meta.json", "r") as f:
 # In-memory user session store
 conversation_sessions = {}
 
+
 def get_embedding(text):
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
     with torch.no_grad():
@@ -49,11 +52,13 @@ def chat():
 
     global conversation_sessions
 
+
     # On first message, build RAG + prompt and start new chat
     if user_id not in conversation_sessions:
         query_vector = get_embedding(query)
         D, I = index.search(query_vector, k=3)
         context = "\n\n".join([body_list[i] for i in I[0]])
+        session_id = str(uuid.uuid4())
 
         prompt = f"""
 You are Solace — a warm, emotionally intelligent mental wellness assistant who supports users through tough emotional moments like heartbreak, stress, loneliness, or self-doubt.
@@ -73,12 +78,18 @@ Your job is to make the user feel heard, supported, and gently encouraged — wh
             {"role": "user", "parts": [prompt]},
             {"role": "model", "parts": ["Understood. I will offer supportive, non-clinical, empathetic responses."]}
         ])
-        conversation_sessions[user_id] = chat
+        conversation_sessions[user_id] = {
+            "session_id": session_id,
+            "chat": chat
+        }
     else:
-        chat = conversation_sessions[user_id]
+        chat = conversation_sessions[user_id]["chat"]
+        session_id = conversation_sessions[user_id]["session_id"]
 
     # Send user message and get response
     response = chat.send_message(query)
+    context_passages = [body_list[i] for i in I[0]] if user_id not in conversation_sessions else None
+    log_interaction(user_id, session_id, query, response.text, context_passages)
     return jsonify({"response": response.text})
 
 if __name__ == "__main__":

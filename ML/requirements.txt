@@ -9,3 +9,6 @@ faiss-cpu==1.11.0
 gunicorn
 torch
 transformers
+textblob
+gspread
+oauth2client

@@ -96,37 +96,37 @@ const ChatbotPage = () => {
   };
 
   return (
-    <>
-    <div className="min-h-screen w-full bg- relative">
+    <div>
+    <div className="min-h-screen w-full bg- relative md:max-w-screen">
   {/* Noise Texture (Darker Dots) Background */}
   <div className="absolute inset-0 z-0" style={{background: "#ffffff",backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.35) 1px, transparent 0)",backgroundSize: "20px 20px",}}/>
 
 
     <div className="w-screen flex justify-center items-center z-50">
-    <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className=' md:w-[90%] fixed z-50 top-0 lg:w-[60%]'>
+    <motion.div animate={{opacity:[0, 1]}} transition={{duration: 1}} className=' md:w-[95%] w-full fixed z-50 top-0 lg:w-[60%]' style={{zIndex:"10000"}}>
           <Header className="z-50"/>
       </motion.div>
     </div>
-    <div className="md:px-20 z-50 bg-blue-500 flex md:flex-col justify-center min-w-screen min-h-screen items-center bg-[url('/images/bg.jpg')] ">
+    <div className=" z-50 bg-blue-500 flex md:flex-col justify-center lg:min-w-screen min-h-screen items-center bg-[url('/images/bg.jpg')] ">
     
-    <motion.div className="flex z-50 bg-purple-400/40 p-5 font-inter gap-5 md:w-5xl shadow-2xl rounded-2xl shrink-0">
+    <motion.div className="flex z-50 bg-purple-400/40 p-5 font-inter gap-5 lg:w-[60%] md:w-[90%] w-[90%] shadow-2xl rounded-2xl shrink-0">
       {/* Header */}
 
-    <div className="h-[60vh] shrink-0 flex flex-col w-[70%]">
+    <div className="lg:h-[60vh] md:h-[60vh] h-[75vh] shrink-0 flex flex-col lg:w-[70%] w-full">
       <div className="flex items-center gap-3 px-6 py-4 bg-[#BBADFF] text-white shadow-md rounded-t-xl shrink-0">
         <img src = "/images/therapist.jpg" className="h-10 w-10 rounded-full"></img>
-        <h1 className="text-lg font-semibold text-gray-900">Solace - Your Personalised Therapist</h1>
+        <h1 className="text-lg font-semibold text-gray-900 flex">Solace<span className="lg:flex hidden"> - Your Personalised Therapist</span></h1>
         <span className="ml-auto text-sm bg-green-500 px-2 py-1 rounded-full">Online</span>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 bg-purple-100">
+      <div className="flex-1 overflow-y-auto lg:px-6 md:px-6 px-2 py-4 bg-purple-100">
         {messages.map((msg, i) => {
           const isUser = msg.sender === "user";
           return (
             <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
               <div
-                className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg shadow-md text-sm relative shrink-0 ${
+                className={`lg:max-w-xs md:max-w-md max-w-[90%] px-4 py-2 rounded-lg shadow-md text-sm relative shrink-0 ${
                   isUser ? "bg-blue-100 text-right text-black" : "bg-white text-black text-left"
                 }`}
               >
@@ -160,7 +160,7 @@ const ChatbotPage = () => {
         </button>
       </div>
     </div>
-    <div className="h-[60vh] bg-purple-100 flex flex-col w-[30%] gap-5 rounded-2xl p-5">
+    <div className="h-[60vh] bg-purple-100 flex-col w-[30%] gap-5 rounded-2xl p-5 lg:flex hidden">
       <h1 className="text-md font-semibold">In Case You’re Not Sure What to Say...</h1>
       <div onClick={()=>{setInput("I am not feeling well today.")}} className="bg-white p-2 rounded-sm text-sm shadow-lg shadow-gray-300 active:bg-gray-100 hover:shadow-xl"> - "I am not feeling well today."</div>
       <div onClick={()=>{setInput("Can we talk about my overthinking?")}} className="bg-white p-2 rounded-sm text-sm shadow-lg shadow-gray-300">- "Can we talk about my overthinking?"</div>
@@ -169,7 +169,7 @@ const ChatbotPage = () => {
     </motion.div>
     </div>
     </div>
-    </>
+    </div>
   );
 };
 
