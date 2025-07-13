@@ -70,7 +70,7 @@ const ChatbotPage = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    const response = await axios.post("https://safespace-chat.onrender.com/chat", {
+    const response = await axios.post("https://safespace-ai-nohh.onrender.com/chat", {
       message: userMessage.text,
       userId: `${User._id}`
     });
