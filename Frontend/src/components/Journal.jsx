@@ -31,7 +31,7 @@ export default function MoodJournal() {
       setNote("");
       setSelectedMood(null);
       try{
-        const response = await fetch('https://safespace-backend-6him.onrender.com/api/journal', {
+        const response = await fetch('https://priv-safespace.onrender.com/api/journal', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export default function MoodJournal() {
       const fetchUserData = async () => {
         try {
           const token = localStorage.getItem('token'); 
-          const response = await axios.get('https://safespace-backend-6him.onrender.com/user', {
+          const response = await axios.get('https://priv-safespace.onrender.com/user', {
             headers: {
               Authorization: `Bearer ${token}`,  
           }}
@@ -102,7 +102,7 @@ export default function MoodJournal() {
       if (!userId) return;
       const fetchEntries = async () => {
         try {
-          const response = await fetch(`https://safespace-backend-6him.onrender.com/api/journal/${userId}`);
+          const response = await fetch(`https://priv-safespace.onrender.com/api/journal/${userId}`);
           const data = await response.json();
           if (response.ok) {
             setEntries(data); 
@@ -122,7 +122,7 @@ export default function MoodJournal() {
         const sendNotif = async ()=>{
           try {
             const timestamp = new Date().toISOString(); // ISO format with Z included by default
-            await axios.post("https://safespace-backend-6him.onrender.com/notify-admin", {
+            await axios.post("https://priv-safespace.onrender.com/notify-admin", {
               message: '',
               userId: userId,
               timestamp: timestamp,

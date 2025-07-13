@@ -39,7 +39,7 @@ const ChatbotPage = () => {
         const token = localStorage.getItem('token');
 
       try {  
-        const response = await axios.get('https://safespace-backend-6him.onrender.com/api/user', {
+        const response = await axios.get('https://priv-safespace.onrender.com/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

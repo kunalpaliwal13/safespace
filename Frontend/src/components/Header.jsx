@@ -19,7 +19,7 @@ const Header=()=>{
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token'); 
-        const response = await axios.get('https://safespace-backend-6him.onrender.com/api/user', {
+        const response = await axios.get('https://priv-safespace.onrender.com/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,  
         }}
@@ -40,7 +40,7 @@ const Header=()=>{
       const fetchNotifications = async () => {
         try {
           const token = localStorage.getItem('token');
-          const res = await axios.get('https://safespace-backend-6him.onrender.com/api/notifications', {
+          const res = await axios.get('https://priv-safespace.onrender.com/api/notifications', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setNotifContent(res.data);
