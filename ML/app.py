@@ -19,7 +19,7 @@ genai.configure(api_key=api_key)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins="*")
+CORS(app, origins=["https://safespacefrontend.vercel.app", "https://safespace-amber.vercel.app"])
 
 # Load embedding model once
 tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
