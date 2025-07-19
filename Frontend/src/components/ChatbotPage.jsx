@@ -59,6 +59,7 @@ const ChatbotPage = () => {
 
   // Handle sending message
   const handleSendMessage = async () => {
+    try{
     if (!input.trim()) return;
 
     const userMessage = {
@@ -69,23 +70,30 @@ const ChatbotPage = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-
-    const response = await axios.post("https://safespace-ai-nohh.onrender.com/chat", {
-      message: userMessage.text,
-      userId: `${User._id}`
-    });
-
+  
+      const response = await axios.post(
+      "https://safespace-ai-nohh.onrender.com/chat", 
+      {
+        message: userMessage.text,
+        userId: `${User._id}`
+      },
+      {
+        withCredentials: true, // Send cookies if needed
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      }      
+    );
     const botResponse = {
       sender: "bot",
       text: response.data.response,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
-
-    
-
     setTimeout(() => {
       setMessages((prev) => [...prev, botResponse]);
     }, 600);
+    }catch(e){console.log(e)}    
   };
 
   const handleKeyPress = (e) => {
