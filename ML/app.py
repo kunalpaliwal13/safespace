@@ -11,6 +11,7 @@ from transformers import AutoTokenizer, AutoModel
 import uuid
 from Data_Logging.logger import log_interaction 
 
+
 # Load environment variables
 load_dotenv()
 api_key = os.getenv("API_KEY")

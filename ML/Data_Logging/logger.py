@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from textblob import TextBlob
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import json
+import os
 
 conn = sqlite3.connect("interaction_logs.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -30,7 +32,13 @@ def log_interaction(user_id, session_id, user_message, chatbot_response, context
     ''', (timestamp, user_id, session_id, user_message, chatbot_response, context_text))
 
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+    creds_json = os.getenv("GOOGLE_CREDS_JSON")
+    if not creds_json:
+        raise Exception("GOOGLE_CREDS_JSON not found in environment")
+
+    creds_dict = json.loads(creds_json)
+
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 
 
     conn.commit()
