@@ -17,12 +17,21 @@ load_dotenv()
 api_key = os.getenv("API_KEY")
 genai.configure(api_key=api_key)
 
-# Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": [
+ALLOWED_ORIGINS = [
     "https://safespacefrontend.vercel.app",
     "https://safespace-amber.vercel.app"
-]}}, supports_credentials=True)
+]
+
+# CORS configuration
+CORS(app, resources={
+    r"/chat": {
+        "origins": ALLOWED_ORIGINS,
+        "supports_credentials": True,
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Load embedding model once
 tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
@@ -50,17 +59,36 @@ def home():
 
 @app.route('/chat', methods=['POST', 'OPTIONS'])
 def chat():
-    if request.method == 'OPTIONS':
-        response = app.make_default_options_response()
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        return response
+    # Get the origin from the request
+    origin = request.headers.get('Origin')
+    
+    # Check if it's in our allowed list
+    allowed_origins = [
+        "https://safespacefrontend.vercel.app",
+        "https://safespace-amber.vercel.app"
+    ]
+    
+    # Create response object early so we can add headers consistently
+    response_headers = {
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Credentials": "true"
+    }
 
+    if request.method == 'OPTIONS':
+        if origin in allowed_origins:
+            response = jsonify({"status": "preflight"})
+            response.headers.add("Access-Control-Allow-Origin", origin)
+            for k, v in response_headers.items():
+                response.headers.add(k, v)
+            return response
+        else:
+            return jsonify({"error": "Origin not allowed"}), 403
+
+    # Handle POST request
     data = request.json
     query = data['message']
-    user_id = data.get('userId', 'default')  # fallback for single-user
+    user_id = data.get('userId', 'default')
 
     global conversation_sessions
 
@@ -75,7 +103,7 @@ You are Solace — a warm, emotionally intelligent mental wellness assistant who
 
 You are not a clinical therapist. You do not ask too many questions. Instead, you respond with grounded, supportive reflections — offering emotional insight, comfort, and helpful next steps. Be conversational, assertive, and thoughtful.
 
-Avoid repeating things like: “Can you tell me more?”, “If you feel comfortable…”, or “There’s no pressure to share.” Do not ask for more information unless absolutely necessary. You are here to connect, validate, and guide — not interrogate.
+Avoid repeating things like: "Can you tell me more?", "If you feel comfortable…", or "There's no pressure to share." Do not ask for more information unless absolutely necessary. You are here to connect, validate, and guide — not interrogate.
 
 Use the tone and flow of the following real therapist conversations as style inspiration only — do not copy or quote directly:
 {context}
@@ -101,8 +129,13 @@ Your job is to make the user feel heard, supported, and gently encouraged — wh
     log_interaction(user_id, session_id, query, response.text, context_passages)
     
     res = jsonify({"response": response.text})
-    res.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
-    res.headers['Access-Control-Allow-Credentials'] = 'true'
+    
+    # Add CORS headers to the main response too
+    if origin in allowed_origins:
+        res.headers.add("Access-Control-Allow-Origin", origin)
+    for k, v in response_headers.items():
+        res.headers.add(k, v)
+    
     return res
 
 if __name__ == "__main__":
