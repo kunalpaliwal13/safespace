@@ -7,3 +7,4 @@ notes.txt
 \Backend\.env
 \Backend\node_modules
 \ML\interaction_logs.db
+\ML\credentials.json
