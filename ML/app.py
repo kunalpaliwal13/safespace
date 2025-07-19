@@ -19,7 +19,10 @@ genai.configure(api_key=api_key)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, origins=["https://safespacefrontend.vercel.app", "https://safespace-amber.vercel.app"])
+CORS(app, resources={r"/*": {"origins": [
+    "https://safespacefrontend.vercel.app",
+    "https://safespace-amber.vercel.app"
+]}}, supports_credentials=True)
 
 # Load embedding model once
 tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
@@ -45,16 +48,22 @@ def get_embedding(text):
 def home():
     return "server is live."
 
-@app.route('/chat', methods=['POST'])
+@app.route('/chat', methods=['POST', 'OPTIONS'])
 def chat():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        return response
+
     data = request.json
     query = data['message']
     user_id = data.get('userId', 'default')  # fallback for single-user
 
     global conversation_sessions
 
-
-    # On first message, build RAG + prompt and start new chat
     if user_id not in conversation_sessions:
         query_vector = get_embedding(query)
         D, I = index.search(query_vector, k=3)
@@ -87,11 +96,14 @@ Your job is to make the user feel heard, supported, and gently encouraged — wh
         chat = conversation_sessions[user_id]["chat"]
         session_id = conversation_sessions[user_id]["session_id"]
 
-    # Send user message and get response
     response = chat.send_message(query)
     context_passages = [body_list[i] for i in I[0]] if user_id not in conversation_sessions else None
     log_interaction(user_id, session_id, query, response.text, context_passages)
-    return jsonify({"response": response.text})
+    
+    res = jsonify({"response": response.text})
+    res.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin')
+    res.headers['Access-Control-Allow-Credentials'] = 'true'
+    return res
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5002)  # 0.0.0.0 allows external access in prod
