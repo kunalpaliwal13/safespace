@@ -20,13 +20,15 @@ genai.configure(api_key=api_key)
 app = Flask(__name__)
 ALLOWED_ORIGINS = [
     "https://safespacefrontend.vercel.app",
+    "https://safespacefrontend.vercel.app/chatbot",
     "https://safespace-amber.vercel.app"
+    "https://safespace-amber.vercel.app/chatbot"
 ]
 
 # CORS configuration
 CORS(app, resources={
     r"/chat": {
-        "origins": ALLOWED_ORIGINS,
+        "origins": "*",
         "supports_credentials": True,
         "methods": ["POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]

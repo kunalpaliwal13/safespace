@@ -17,7 +17,7 @@ export default function AuthPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://priv-safespace.onrender.com/api/login", {
+      const res = await axios.post("https://priv-safespace-6qcp.onrender.com/api/login", {
         email: formData.email,
         password: formData.password,
       });
@@ -33,7 +33,7 @@ export default function AuthPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://priv-safespace.onrender.com/api/register", {
+      const res = await axios.post("https://priv-safespace-6qcp.onrender.com/api/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

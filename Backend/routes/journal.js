@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
   const { mood, entry } = req.body;
   try {
     // Optional: send to ML service
-    const mlRes = await axios.post("https://priv-safespace.onrender.com/analyze", { text: entry });
+    const mlRes = await axios.post("https://priv-safespace-6qcp.onrender.com/analyze", { text: entry });
 
     const journal = new Journal({
       mood,

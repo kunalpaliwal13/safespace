@@ -101,7 +101,7 @@ const ExercisesResourcesPage = () => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token'); 
-        const response = await axios.get('https://priv-safespace.onrender.com/api/user', {
+        const response = await axios.get('https://priv-safespace-6qcp.onrender.com/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,  
         }}
