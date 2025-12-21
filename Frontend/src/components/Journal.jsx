@@ -12,127 +12,119 @@ export default function MoodJournal() {
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const [entries, setEntries] = useState([]);
-  const [User, setUser] = useState(null);
-  const [userId, setUserId] = useState("");
+  const [user, setUser] = useState(null);
 
+  const token = localStorage.getItem("token");
+
+  // -----------------------------
+  // FETCH USER
+  // -----------------------------
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("http://127.0.0.1:8000/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch (e) {
+        console.error("User fetch error:", e);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // -----------------------------
+  // FETCH JOURNAL ENTRIES
+  // -----------------------------
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const fetchEntries = async () => {
+  const res = await axios.get(
+    "http://127.0.0.1:8000/api/journal",
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  setEntries(res.data);
+};
+
+
+    fetchEntries();
+  }, [user]);
+
+  // -----------------------------
+  // SAVE ENTRY
+  // -----------------------------
   const handleSubmit = async () => {
-
-    if (note.length >= 5 && date && selectedMood !== null) {
-      
-      const newEntry = {
-        date,
-        mood: moods[selectedMood],
-        emoji: emojis[selectedMood],
-        note,
-        userId
-      };
-
-      setEntries([newEntry, ...entries]);
-      setNote("");
-      setSelectedMood(null);
-      try{
-        const response = await fetch('https://safespace-backend-6him.onrender.com/api/journal', {
-          method: 'POST',
+    if (selectedMood === null || note.length < 5) return;
+    console.log("hi");
+    const today = new Date().toISOString().split("T")[0];
+    try {
+      await axios.post(
+        "http://127.0.0.1:8000/api/journal",
+        {
+          date: today,
+          mood: moods[selectedMood],
+          emoji: emojis[selectedMood],
+          note,
+        },
+        {
           headers: {
-            'Content-Type': 'application/json',
-          
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            ...newEntry,
-            userId: userId, 
-          }),
-          
         }
       );
-        const data = await response.json();
-      if (response.ok) {
-        setEntries([newEntry, ...entries]);
-        setNote("");
-        setSelectedMood(null);
-      } else {
-        console.log('Error:', data.message);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-      }
-      
-    }
 
+      // refetch instead of duplicating
+      setDate("");
+      setNote("");
+      setSelectedMood(null);
+
+      const refreshed = await axios.get(
+      "http://127.0.0.1:8000/api/journal",
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+    setEntries(refreshed.data);
+    } catch (e) {
+      console.error("Save error:", e);
+    }
+  };
+
+  // -----------------------------
+  // MOOD ANALYTICS
+  // -----------------------------
   let mostCommonMood = null;
   let mostCommonEmoji = "";
   let mostCommonPercentage = 0;
-  if (entries.length > 0) {
-    const moodCount = {};
-    entries.forEach((entry) => {
-      moodCount[entry.mood] = (moodCount[entry.mood] || 0) + 1;
-    });
-  
-    mostCommonMood = Object.keys(moodCount).reduce((a, b) =>
-      moodCount[a] > moodCount[b] ? a : b
+
+  if (entries.length) {
+    const count = {};
+    entries.forEach((e) => (count[e.mood] = (count[e.mood] || 0) + 1));
+    mostCommonMood = Object.keys(count).reduce((a, b) =>
+      count[a] > count[b] ? a : b
     );
-  
     mostCommonEmoji = emojis[moods.indexOf(mostCommonMood)];
     mostCommonPercentage = Math.round(
-      (moodCount[mostCommonMood] / entries.length) * 100
-    );}
-  
-    useEffect(() => {
-    
-      const fetchUserData = async () => {
-        try {
-          const token = localStorage.getItem('token'); 
-          const response = await axios.get('https://safespace-backend-6him.onrender.com/user', {
-            headers: {
-              Authorization: `Bearer ${token}`,  
-          }}
-        );
-          setUserId(response.data._id);
-          setUser(response.data);  
-          } catch (err) {
-          console.error(err);
-        }
-      };
-  
-      fetchUserData();
-  
-    }, []);
+      (count[mostCommonMood] / entries.length) * 100
+    );
+  }
 
-    useEffect(() => {
-      if (!userId) return;
-      const fetchEntries = async () => {
-        try {
-          const response = await fetch(`https://safespace-backend-6him.onrender.com/api/journal/${userId}`);
-          const data = await response.json();
-          if (response.ok) {
-            setEntries(data); 
-          } else {
-            console.error("Error fetching entries:", data.message);
-          }
-        } catch (error) {
-          console.error("Error:", error);
-        }
-      };
-  
-      fetchEntries();
-    }, [userId]);
+  // -----------------------------
+  // ADMIN NOTIFICATION
+  // -----------------------------
+  useEffect(() => {
+    if (entries.length > 15 && mostCommonMood === "Terrible") {
+      axios.post("http://127.0.0.1:8000/notify-admin", {
+        message: "User showing prolonged distress",
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [entries, mostCommonMood]);
 
-    useEffect(()=>{
-      if(entries.length>15 && mostCommonMood =='terrble'){
-        const sendNotif = async ()=>{
-          try {
-            const timestamp = new Date().toISOString(); // ISO format with Z included by default
-            await axios.post("https://safespace-backend-6him.onrender.com/notify-admin", {
-              message: '',
-              userId: userId,
-              timestamp: timestamp,
-            });
-          } catch (e) {
-            console.error("Notification error:", e);
-          }}
-          sendNotif();
-      }
-    },[entries, mostCommonMood, userId]);
+
 
 
   return (
@@ -153,7 +145,7 @@ export default function MoodJournal() {
             Record how you're feeling today
           </p>
 
-          <label className="text-sm font-medium flex items-center gap-2 mb-2">
+          {/* <label className="text-sm font-medium flex items-center gap-2 mb-2">
             Date
           </label>
           <div className="flex items-center gap-2 mb-4">
@@ -163,7 +155,7 @@ export default function MoodJournal() {
               onChange={(e) => setDate(e.target.value)}
               className="border-gray-200 border rounded px-3 py-2 w-full"
             />
-          </div>
+          </div> */}
 
           <label className="text-sm font-medium mb-3 flex-col flex items-start">Mood</label>
           <div className="flex gap-2 flex-wrap mb-4">
@@ -195,7 +187,7 @@ export default function MoodJournal() {
           </p>
 
           <button
-            onClick={()=>{handleSubmit()}}
+            onClick={handleSubmit}
             className="bg-purple-900 hover:bg-purple-700 text-white px-5 py-2 rounded-lg"
           >
             Save Entry
@@ -233,7 +225,7 @@ export default function MoodJournal() {
       {/* Recent Entries */}
       <div className="mt-10 px-10 md:px-80 my-10">
         <h3 className="text-2xl font-semibold mb-4"> Recent Entries</h3>
-        {entries.map((entry, idx) => (
+        {[...entries].reverse().map((entry, idx) => (
           <div
             key={idx}
             className="bg-white rounded-lg shadow-2xl p-4 mb-2 "
