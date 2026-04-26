@@ -17,7 +17,7 @@ export default function AuthPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://safespace-backend-ai.onrender.com/api/login", {
+      const res = await axios.post("https://safespace-chat.onrender.com/api/login", {
         email: formData.email,
         password: formData.password,
       });
@@ -34,7 +34,7 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       console.log(formData);
-      const res = await axios.post("https://safespace-backend-ai.onrender.com/api/register", {
+      const res = await axios.post("https://safespace-chat.onrender.com/api/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

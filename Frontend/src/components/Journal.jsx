@@ -62,7 +62,7 @@ export default function MoodJournal() {
     const today = new Date().toISOString().split("T")[0];
     try {
       await axios.post(
-        "https://safespace-backend-ai.onrender.com/api/journal",
+        "https://safespace-chat.onrender.com/api/journal",
         {
           date: today,
           mood: moods[selectedMood],
@@ -82,7 +82,7 @@ export default function MoodJournal() {
       setSelectedMood(null);
 
       const refreshed = await axios.get(
-      "https://safespace-backend-ai.onrender.com/api/journal",
+      "https://safespace-chat.onrender.com/api/journal",
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -117,7 +117,7 @@ export default function MoodJournal() {
   // -----------------------------
   useEffect(() => {
     if (entries.length > 15 && mostCommonMood === "Terrible") {
-      axios.post("https://safespace-backend-ai.onrender.com/notify-admin", {
+      axios.post("https://safespace-chat.onrender.com/notify-admin", {
         message: "User showing prolonged distress",
         timestamp: new Date().toISOString(),
       });
