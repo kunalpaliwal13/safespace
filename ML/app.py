@@ -19,6 +19,15 @@ import re
 import random
 # from RAG.retrievequery import generate_response, load_vector_store
 from collections import defaultdict
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # ✅ Move this to startup — load ONCE, not on every message
