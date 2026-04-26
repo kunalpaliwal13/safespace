@@ -1,7 +1,19 @@
-Flask==3.0.2
+# Flask==3.0.2
 google-generativeai==0.4.1
 python-dotenv==1.0.1
-Flask-Cors==4.0.0
+# Flask-Cors==4.0.0
 requests==2.31.0
 scikit-learn==1.6.1
 ollama==0.5.1
+fastapi
+uvicorn
+gunicorn
+pydantic
+# python-dotenv
+numpy
+faiss-cpu
+# ollama
+PyJWT
+bcrypt
+pymongo
+mistralai
