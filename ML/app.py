@@ -8,13 +8,20 @@ import google.generativeai as genai
 import numpy as np
 import faiss
 import ollama
+import pickle
 import jwt
 import bcrypt
 import json
 import os
+from mistralai.client import Mistral
 from pymongo import MongoClient
 import re
 import random
+# from RAG.retrievequery import generate_response, load_vector_store
+from collections import defaultdict
+
+
+# ✅ Move this to startup — load ONCE, not on every message
 
 
 # -----------------------------
@@ -32,6 +39,7 @@ client = MongoClient(MONGO_URI)
 db = client["test"]
 users = db["users"]
 
+
 # -----------------------------
 # FASTAPI APP SETUP
 # -----------------------------
@@ -45,99 +53,118 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
-# HELPERS
-# -----------------------------
 
-GENERIC_PROMPT = """
-You are Solace, a kind, calm, supportive conversational assistant.
+load_dotenv()
+print("API KEY:", os.getenv("MISTRAL_API_KEY"))
 
-Guidelines:
-- Be warm, human, and brief.
-- Do NOT give mental health advice.
-- Do NOT provide therapy or CBT techniques.
-- You may ask gentle follow-up questions.
-- If the user expresses distress, respond with empathy only.
+def retrieve(query, index, chunks, k=5):
+    query_embedding = ollama.embeddings(
+        model="nomic-embed-text",
+        prompt=query
+    )["embedding"]
 
-User message:
-{message}
-"""
+    D, I = index.search(
+        np.array([query_embedding]).astype("float32"), k
+    )
 
-EMOTION_RESPONSES = [
-    "That sounds really heavy. I’m really sorry you’re going through this.",
-    "I hear how painful this feels. Breakups can leave a deep emptiness.",
-    "It makes sense to feel this way after something like that.",
-    "I’m really sorry — that kind of pain can feel overwhelming.",
-    "What you’re feeling is valid. Anyone in your place would struggle.",
-    "That sounds incredibly hard. I’m glad you reached out.",
-    "I can hear how much this is hurting right now.",
-    "It sounds like you’re carrying a lot inside.",
-    "This sounds deeply painful, and I’m really sorry you’re experiencing it.",
-    "Heartbreak can shake your whole sense of stability — it’s not small.",
-    "It’s understandable if this feels unbearable right now.",
-    "That kind of emotional loss can feel exhausting and confusing.",
-    "It’s okay if you don’t have clarity about your feelings yet.",
-    "This kind of hurt doesn’t just disappear overnight.",
-    "What you’re feeling isn’t weakness — it’s human.",
-    "It sounds like this has left you feeling really alone.",
-    "Pain like this can make everything else feel heavier too.",
-    "You’re not wrong for feeling this deeply."
-]
+    return [chunks[i] for i in I[0]]
 
-FOLLOW_UPS = [
-    "Do you want to talk about what’s hurting the most right now?",
-    "What part of this feels hardest at the moment?",
-    "I’m here with you — you can share more if you want.",
-    "What’s been going through your mind since this happened?",
-    "Do you feel more sad, angry, or just empty right now?",
-    "Would it help to talk about what you’re missing the most?",
-    "What’s the thought that keeps coming back the most?",
-    "When did this start feeling unbearable for you?",
-    "What feels most confusing about this situation?",
-    "Are you feeling this more in your thoughts or your body right now?",
-    "What do you find yourself replaying over and over?",
-    "Is there something you wish you could say but haven’t?",
-    "What feels hardest about today specifically?",
-    "Do you feel like this pain comes in waves or stays constant?",
-    "What do you feel you’ve lost the most?",
-    "Would you like to just vent, or do you want help coping right now?"
-]
+def load_vector_store(index_path="faiss_index.bin", chunks_path="chunks.pkl"):
+    try:
+        print("📦 Loading FAISS index...")
+        index = faiss.read_index(index_path)
 
-VENTING_RESPONSES = [
-    "That sounds really intense. I can feel how frustrated you are.",
-    "It sounds like you’ve been holding this in for a while.",
-    "That anger makes sense given what you’re dealing with.",
-    "It’s okay to feel this mad about it.",
-    "That sounds like a lot to carry emotionally.",
-    "It sounds like this has built up over time.",
-    "Letting this out makes sense — bottling it up can be exhausting.",
-    "That frustration feels completely justified.",
-    "You don’t have to censor yourself here.",
-    "It sounds like you’re at your limit right now.",
-    "That kind of anger often comes from feeling deeply hurt.",
-    "It makes sense if you’re feeling both angry and sad at the same time.",
-    "This sounds like it crossed an emotional boundary for you.",
-    "You’re allowed to be upset about this.",
-    "That reaction doesn’t make you a bad person — it makes you human."
-]
+        print("📄 Loading chunks...")
+        with open(chunks_path, "rb") as f:
+            chunks = pickle.load(f)
 
-ACUTE_DISTRESS_RESPONSES = [
-    "That sounds really frightening. Waking up like that can make your body feel like the danger is still there.",
-    "I’m really sorry you experienced that. Nightmares can leave your body feeling shaken even after you wake up.",
-    "That must have been terrifying to wake up feeling trapped like that."
-]
+        print(f"✅ Loaded {len(chunks)} chunks")
 
-GROUNDING_PROMPTS = [
-    "You’re awake now, and you’re safe in this moment.",
-    "Nothing bad is happening right now — your body is reacting to fear that has passed.",
-    "Take a moment with me. You’re here, and the nightmare is over."
-]
+        return index, chunks
 
-GROUNDING_FOLLOW_UPS = [
-    "Would it help to tell me which part of the dream felt the scariest?",
-    "What does your body feel like right now?",
-    "Do you feel more scared, tense, or exhausted at the moment?"
-]
+    except Exception as e:
+        print(f"❌ Error loading vector store: {e}")
+        return None, None
+
+def generate_response(query, context_chunks):
+    
+    context = context_chunks
+
+    prompt = f"""
+        You are a supportive and thoughtful mental health assistant.
+
+        STRICT RULES:
+        - Ask only ONE question per response, and only if it naturally moves the conversation forward
+        - Do NOT repeat or rephrase questions already asked (see 'Already asked' below)
+        - Do NOT always end with a question — sometimes just reflect, validate, or reframe
+        - Use the user's own words when reflecting back to them
+        - Acknowledge what they said BEFORE asking anything
+        - Keep responses to 3-5 sentences max
+        - Never say generic phrases like "I'm here for you" without substance
+        - Never mention "context", "articles", or that you're retrieving information
+
+        Guidelines:
+        - Use the provided context as supporting knowledge, not as the main response.
+        - Do NOT copy or directly repeat sentences from the context.
+        - Blend relevant ideas naturally into your response in your own words.
+        - Prioritize the user's message over the context. The response should feel personal, not generic.
+
+        HANDLING "WHAT SHOULD I DO" QUESTIONS:
+        - If the user asks for advice or "what should I do", do NOT deflect with another question
+        - Give a short, practical, emotionally grounded suggestion (1-2 sentences)
+        - Then optionally check in with one gentle question like "Does that feel doable?"
+        - Never respond to a direct request for help with only a reflection
+
+        Tone:
+        - Be empathetic, calm, and human-like.
+        - Avoid repetitive phrases like "I understand how you feel".
+        - Do not sound robotic or overly formal.
+
+        Content:
+        - Give practical, actionable, and specific suggestions when appropriate.
+        - Avoid overly generic advice (e.g., "stay positive", "everything will be okay").
+        - If context is not relevant, ignore it.
+
+        Structure:
+        - First: Acknowledge the user's feeling in a natural way (not templated, and only when necessary).
+        - Second: Reflect or reframe their situation briefly.
+        - Once context is clear : Start offering gentle reframes or suggestions
+        - Direct advice requests : Answer them, don't deflect
+        - Optional: Ask a gentle follow-up question if and only if it helps continue the conversation.
+
+        PEOPLE/ROLES TRACKING:
+        - The user is the one speaking to you
+        - Track any other people mentioned (wife, friend, boss etc.) by name or role
+        - Never attribute the wrong emotion or behavior to the wrong person
+
+        Important:
+        - Never mention "context" or "articles" in the response.
+        - Never sound like a knowledge retrieval system.
+        - The response should feel like it comes from a caring human, not a database.
+
+        Context:
+        {context}
+
+        User:
+        {query}
+
+        Answer:
+        """
+    with Mistral(api_key=os.getenv("MISTRAL_API_KEY", ""),) as mistral:
+
+        res = mistral.chat.complete(model="mistral-small", messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ], stream=False, response_format={
+            "type": "text",
+    })
+
+    for i in res:
+        print(i)
+    return res.choices[0].message.content
+
 
 def hash_password(password: str):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -266,6 +293,7 @@ def register(data: RegisterModel):
         "notifications": [],
         "journal": [],
     })
+    
 
     return {"message": "User created"}
 
@@ -274,6 +302,7 @@ def register(data: RegisterModel):
 # -----------------------------
 @app.post("/api/login")
 def login(data: LoginModel):
+    print(data)
     user = users.find_one({"email": data.email})
     if not user or not verify_password(data.password, user["password"]):
         raise HTTPException(401, "Invalid credentials")
@@ -354,95 +383,36 @@ def get_journal(user=Depends(get_current_user)):
 
 @app.post("/chat")
 def chat(data: ChatModel, user=Depends(get_current_user)):
-    intent = detect_intent(data.message)
-    # GREETING
-    if intent == "GREETING":
-        return {
-            "response": "Hi! I’m here with you. How are you feeling today?"
-        }
 
-    # EMOTIONAL EXPRESSION
-    if intent == "EMOTION":
-        response = random.choice(EMOTION_RESPONSES)
-        follow_up = random.choice(FOLLOW_UPS)
-        return {
-            "response": f"{response} {follow_up}"
-        }
+    from collections import defaultdict
+    conversation_store: dict[str, list] = defaultdict(list)
     
-    # VENTING
-    if intent == "VENTING":
-        response = random.choice(VENTING_RESPONSES)
-        follow_up = random.choice(FOLLOW_UPS)
+    index, all_chunks = load_vector_store(index_path="RAG\\faiss_index.bin", chunks_path="RAG\chunks.pkl")
 
-        return {
-            "response": f"{response} {follow_up}"
-        }
-    
-    if intent == "ACUTE_DISTRESS":
-        response = random.choice(ACUTE_DISTRESS_RESPONSES)
-        grounding = random.choice(GROUNDING_PROMPTS)
-        follow_up = random.choice(GROUNDING_FOLLOW_UPS)
-    
-        return {
-            "response": f"{response} {grounding} {follow_up}"
-        }
+    user_id = str(user["_id"])
+    history = conversation_store[user_id]
 
+    relevant_chunks = retrieve(data.message, index, all_chunks, k=3)
+    rag_context = "\n\n".join(relevant_chunks) if relevant_chunks else "No specific context found."
 
-    # 3️⃣ CBT / KNOWLEDGE → RAG
-    if intent == "CBT_QUERY":
-        index = faiss.read_index("RAG/index.faiss")
-        with open("RAG/meta.json") as f:
-            meta = json.load(f)
+    history_text = "\n".join([
+        f"{'User' if m['role'] == 'user' else 'Solace'}: {m['content']}"
+        for m in history[-8:]  # last 4 exchanges
+    ]) or "This is the start of the conversation."
 
-        query_vec = ollama.embed(
-            model="nomic-embed-text",
-            input=data.message
-        )["embeddings"]
+    previous_questions = [
+        m['content'] for m in history 
+        if m['role'] == 'assistant'
+    ]
+    asked_already = "\n".join(previous_questions[-4:]) if previous_questions else "None"
 
-        D, I = index.search(np.array([query_vec[0]], dtype="float32"), k=3)
+    prompt = data.message
+    response = generate_response(prompt, all_chunks)
+    reply=response or "I’m here with you."
 
-        if D[0][0] > 1.2:
-            return {
-                "response": (
-                    "I’m not fully sure based on what I know right now. "
-                    "Could you tell me a bit more?"
-                )
-            }
-
-        context = "\n\n".join(meta["body_list"][i] for i in I[0])
-
-        genai.configure(api_key=GEMINI_API_KEY)
-
-        prompt = f"""
-            You are Solace, a CBT-based support assistant.
-
-            STRICT RULES:
-            - Use ONLY information inside <CONTEXT>.
-            - Do NOT use general knowledge.
-            - Do NOT invent advice.
-            - If insufficient, say exactly:
-            "I don’t have enough information from my knowledge base to answer that."
-
-            <CONTEXT>
-            {context}
-            </CONTEXT>
-
-            User question:
-            {data.message}
-            """
-
-        model = genai.GenerativeModel("models/gemini-2.5-flash")
-        response = model.generate_content(prompt)
-
-        return {"response": response.text or "I’m not sure based on what I know."}
-
-    # 4️⃣ GENERAL CHAT (NO RAG)
-    genai.configure(api_key=GEMINI_API_KEY)
-
-    prompt = GENERIC_PROMPT.format(message=data.message)
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
-    response = model.generate_content(prompt)
+    history.append({"role": "user",      "content": data.message})
+    history.append({"role": "assistant", "content": reply})
 
     return {
-        "response": response.text or "I’m here with you."
+        "response": response or "I’m here with you."
     }
