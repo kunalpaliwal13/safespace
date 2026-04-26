@@ -10,13 +10,13 @@ const exerciseList = [
     title: "Deep Breathing Exercise",
     description: "A simple exercise to calm your mind and reduce anxiety.",
     tags: ['anxiety', 'breathing', 'beginner'],
-    audio: "../../public/audios/deepbreathing.mp3"
+    audio: "Frontend/public/audios/deepbreathing.mp3"
   },
   {
     title: "Body Scan Meditation",
     description: "Focus on different parts of your body to enhance awareness and relaxation.",
     tags: ['advanced', 'meditation'],
-    audio: "../../public/audios/bodyscan.mp3"
+    audio: "Frontend\public\audios\bodyscan.mp3"
   },
   {
     title: "Progressive Muscle Relaxation",
