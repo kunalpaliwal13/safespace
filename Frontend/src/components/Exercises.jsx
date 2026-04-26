@@ -10,43 +10,43 @@ const exerciseList = [
     title: "Deep Breathing Exercise",
     description: "A simple exercise to calm your mind and reduce anxiety.",
     tags: ['anxiety', 'breathing', 'beginner'],
-    audio: "Frontend/public/audios/deepbreathing.mp3"
+    audio: "public/audios/deepbreathing.mp3"
   },
   {
     title: "Body Scan Meditation",
     description: "Focus on different parts of your body to enhance awareness and relaxation.",
     tags: ['advanced', 'meditation'],
-    audio: "Frontend\public\audios\bodyscan.mp3"
+    audio: "public\audios\bodyscan.mp3"
   },
   {
     title: "Progressive Muscle Relaxation",
     description: "Tense and release muscles to relieve physical tension.",
     tags: ['intermediate', 'meditation'],
-    audio: "../../public/audios/musclerelax.mp3"
+    audio: "public/audios/musclerelax.mp3"
   },
   {
     title: "4-7-8 Breathing",
     description: "Use the 4-7-8 pattern to slow your heart rate and relax.",
     tags: ['breathing', 'beginner'],
-    audio: "../../public/audios/478.mp3"
+    audio: "public/audios/478.mp3"
   },
   {
     title: "Box Breathing",
     description: "Balance your breath with equal counts of inhale, hold, exhale, and hold.",
     tags: ['breathing', 'beginner'],
-    audio: "../../public/audios/boxbreathing.mp3"
+    audio: "public/audios/boxbreathing.mp3"
   },
   {
     title: "Grounding Exercise",
     description: "Connect with the present moment using sensory awareness.",
     tags: ['intermediate', 'meditation'],
-    audio: "../../public/audios/grounding.mp3"
+    audio: "public/audios/grounding.mp3"
   },
   {
     title: "Visualization Technique",
     description: "Imagine calming scenes to reduce stress and foster calm.",
     tags: ['intermediate', 'meditation'],
-    audio: "../../public/audios/visualization.mp3"
+    audio: "public/audios/visualization.mp3"
   }
 ];
 
