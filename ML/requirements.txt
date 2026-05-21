@@ -17,3 +17,4 @@ PyJWT
 bcrypt
 pymongo
 mistralai
+sentence_transformers

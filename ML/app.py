@@ -16,6 +16,9 @@ from pymongo import MongoClient
 import re
 from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict
+from sentence_transformers import SentenceTransformer
+
+
     
 #env
 load_dotenv()
@@ -57,10 +60,13 @@ app.add_middleware(
 conversation_store: dict[str, list] = defaultdict(list)
 
 def retrieve(query, index, chunks, k=5):
-    query_embedding = ollama.embeddings(
-        model="nomic-embed-text",
-        prompt=query
-    )["embedding"]
+    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+    query_embedding = embedding_model.encode(query)
+    # query_embedding = ollama.embeddings(
+    #     model="nomic-embed-text",
+    #     prompt=query
+    # )["embedding"]
 
     D, I = index.search(
         np.array([query_embedding]).astype("float32"), k
