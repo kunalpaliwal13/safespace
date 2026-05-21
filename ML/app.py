@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import numpy as np
 import faiss
-import ollama
+# import ollama
 import pickle
 import jwt
 import bcrypt
@@ -16,7 +16,9 @@ from pymongo import MongoClient
 import re
 from fastapi.middleware.cors import CORSMiddleware
 from collections import defaultdict
-from sentence_transformers import SentenceTransformer
+from mistralai.client import Mistral
+import os
+
 
 
     
@@ -31,6 +33,7 @@ client = MongoClient(MONGO_URI)
 db = client["test"]
 users = db["users"]
 
+mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
 #schema
 class RegisterModel(BaseModel):
     name: str
@@ -60,18 +63,23 @@ app.add_middleware(
 conversation_store: dict[str, list] = defaultdict(list)
 
 
-embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+def get_embedding(text):
 
-def retrieve(query, index, chunks, k=5):
+    response = mistral_client.embeddings.create(
+        model="mistral-embed",
+        inputs=[text]
+    )
 
-    query_embedding = embedding_model.encode(query)
-    # query_embedding = ollama.embeddings(
-    #     model="nomic-embed-text",
-    #     prompt=query
-    # )["embedding"]
+    return response.data[0].embedding
+
+
+def retrieve(query, index, chunks, k=2):
+
+    query_embedding = get_embedding(query)
 
     D, I = index.search(
-        np.array([query_embedding]).astype("float32"), k
+        np.array([query_embedding]).astype("float32"),
+        k
     )
 
     return [chunks[i] for i in I[0]]
@@ -161,15 +169,15 @@ def generate_response(query, context_chunks, history):
         Answer:
         """
     print("Mistral: ", os.getenv("MISTAL_API_KEY"))
-    with Mistral(api_key=os.getenv("MISTRAL_API_KEY", ""),) as mistral:
+    
 
-        res = mistral.chat.complete(model="mistral-small", messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ], stream=False, response_format={
-            "type": "text",
+    res = mistral_client.chat.complete(model="mistral-small", messages=[
+        {
+            "role": "user",
+            "content": prompt,
+        },
+    ], stream=False, response_format={
+        "type": "text",
     })
 
     for i in res:
