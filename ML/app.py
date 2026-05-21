@@ -262,11 +262,12 @@ def get_user(user=Depends(get_current_user)):
     user.pop("password", None)
     return serialize_mongo(user)
 
+index, all_chunks = load_vector_store(index_path="RAG/faiss_index.bin", chunks_path="RAG/chunks.pkl")
 @app.post("/chat")
 def chat(data: ChatModel, user=Depends(get_current_user)):
     
     #index- all vectors, chunks- al text chunks
-    index, all_chunks = load_vector_store(index_path="RAG/faiss_index.bin", chunks_path="RAG/chunks.pkl")
+    
     print(index)
     print(all_chunks)
 
