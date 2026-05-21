@@ -12,14 +12,17 @@ const Header=()=>{
     const [notifContent, setNotifContent] = useState([]);
     const location = useLocation();
     const isHome = location.pathname === '/';
+    const backend= "https://safespace-chat.onrender.com";
+    const localhost= "http://127.0.0.1:8000"
+    const server = localhost
 
-    //fetch users
+
   useEffect(() => {
     
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token'); 
-        const response = await axios.get('https://safespace-chat.onrender.com/api/user', {
+        const response = await axios.get(server+'/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,  
         }}
@@ -35,47 +38,10 @@ const Header=()=>{
 
   }, [User, notifContent]);
 
-    //user is admin? get data for admin
-  useEffect(() => {
-      const fetchNotifications = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get('https://safespace-chat.onrender.com/api/notifications', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setNotifContent(res.data);
-        } catch (err) {
-          console.error('Failed to load notifications:', err);
-        }
-      };
-    
-      if (User?.role === 'admin') {
-        fetchNotifications();
-      }
-    }, [User]);
-
-    const showNotifs=()=>{
-        notifs? setNotifs(false) : setNotifs(true);
-    }
-    const notifRef = useRef(null);
-
     const HandleLogout=()=>{
         localStorage.removeItem("token");
         window.location.href = "/";
       }
-      // siwtch off notifications
-    useEffect(() => {
-        function handleClickOutside(event) {
-          if (notifRef.current && !notifRef.current.contains(event.target)) {
-            setNotifs(false); 
-          }
-        }
-    
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-        };
-      }, []);
 
     return (
       <>

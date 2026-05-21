@@ -86,6 +86,10 @@ const colorArr= {
   'advanced': 'bg-red-200 w-19 text-red-800'
 }
 
+const backend= "https://safespace-chat.onrender.com";
+const localhost= "http://127.0.0.1:8000"
+const server = localhost
+
 const allTags = Array.from(
   new Set(exerciseList.flatMap((exercise) => exercise.tags?.filter((tag) => !excludedTags.includes(tag)) || []))
 );
@@ -101,7 +105,7 @@ const ExercisesResourcesPage = () => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token'); 
-        const response = await axios.get('https://safespace-chat.onrender.com/api/user', {
+        const response = await axios.get(server+'/api/user', {
           headers: {
             Authorization: `Bearer ${token}`,  
         }}

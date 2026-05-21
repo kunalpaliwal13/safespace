@@ -5,6 +5,7 @@ import Header from "./Header";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+
 const ChatbotPage = () => {
   const [messages, setMessages] = useState([
     {
@@ -17,6 +18,9 @@ const ChatbotPage = () => {
     },
   ]);
 
+  const backend= "https://safespace-chat.onrender.com";
+  const localhost= "http://127.0.0.1:8000"
+  const server = localhost
   const [input, setInput] = useState("");
   const [user, setUser] = useState(null);
   const chatEndRef = useRef(null);
@@ -27,36 +31,39 @@ const ChatbotPage = () => {
   // -----------------------------
   // AUTH CHECK
   // -----------------------------
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log(token);
-    if (!token) {
-      navigate("/login", { state: { from: location.pathname } });
-    }
-  }, [navigate, location.pathname]);
+ useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+}, []);
 
   // -----------------------------
   // FETCH USER
   // -----------------------------
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      console.log("TOKEN:", token);
-      try {
-        const res = await axios.get("https://safespace-chat.onrender.com/api/user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUser(res.data);
-      } catch (e) {
-        console.error("User fetch failed:", e);
-        navigate("/login", { state: { from: location.pathname } });
-      }
-    };
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token");
 
-    fetchUser();
-  }, [navigate, location.pathname]);
+    try {
+      const res = await axios.get(server + "/api/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUser(res.data);
+
+    } catch (e) {
+      console.error("User fetch failed:", e);
+      navigate("/login");
+    }
+  };
+
+  fetchUser();
+}, []);
 
   // -----------------------------
   // AUTO SCROLL
@@ -86,7 +93,7 @@ const ChatbotPage = () => {
 
     let response;
     try {
-      response = await axios.post("https://safespace-chat.onrender.com/chat", { message: userMessage.text },
+      response = await axios.post(server+"/chat", { message: userMessage.text },
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

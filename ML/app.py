@@ -4,50 +4,46 @@ from pydantic import BaseModel
 from bson import ObjectId
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-import google.generativeai as genai
 import numpy as np
 import faiss
 import ollama
 import pickle
 import jwt
 import bcrypt
-import json
 import os
 from mistralai.client import Mistral
 from pymongo import MongoClient
 import re
-import random
-# from RAG.retrievequery import generate_response, load_vector_store
-from collections import defaultdict
 from fastapi.middleware.cors import CORSMiddleware
-
-
-
-
-# ✅ Move this to startup — load ONCE, not on every message
-
-
-# -----------------------------
-# LOAD ENVIRONMENT VARIABLES
-# -----------------------------
+from collections import defaultdict
+    
+#env
 load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 JWT_SECRET = os.getenv("JWT_SECRET")
 GEMINI_API_KEY = os.getenv("API_KEY")
 
-# -----------------------------
-# DB CONNECTION
-# -----------------------------
+#db connect
 client = MongoClient(MONGO_URI)
 db = client["test"]
 users = db["users"]
 
+#schema
+class RegisterModel(BaseModel):
+    name: str
+    email: str
+    password: str
+    phone: str
 
-# -----------------------------
-# FASTAPI APP SETUP
-# -----------------------------
+class ChatModel(BaseModel):
+    message: str
+
+class LoginModel(BaseModel):
+    email: str
+    password: str
+
+#app-setup
 app = FastAPI(title="SafeSpace AI Backend", version="2.0")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -55,10 +51,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+#--------------------------------------------------------------------------------------------------------------------|
+#-------------------------------------------------------CHAT TOOLs ---------------------------------------------------|
 
-
-load_dotenv()
-print("API KEY:", os.getenv("MISTRAL_API_KEY"))
+conversation_store: dict[str, list] = defaultdict(list)
 
 def retrieve(query, index, chunks, k=5):
     query_embedding = ollama.embeddings(
@@ -72,7 +68,7 @@ def retrieve(query, index, chunks, k=5):
 
     return [chunks[i] for i in I[0]]
 
-def load_vector_store(index_path="faiss_index.bin", chunks_path="chunks.pkl"):
+def load_vector_store(index_path="RAG/faiss_index.bin", chunks_path="RAG/chunks.pkl"):
     try:
         print("📦 Loading FAISS index...")
         index = faiss.read_index(index_path)
@@ -89,7 +85,7 @@ def load_vector_store(index_path="faiss_index.bin", chunks_path="chunks.pkl"):
         print(f"❌ Error loading vector store: {e}")
         return None, None
 
-def generate_response(query, context_chunks):
+def generate_response(query, context_chunks, history):
     
     context = context_chunks
 
@@ -145,6 +141,9 @@ def generate_response(query, context_chunks):
         - Never sound like a knowledge retrieval system.
         - The response should feel like it comes from a caring human, not a database.
 
+        Recent Conversation:
+        {history}
+
         Context:
         {context}
 
@@ -153,6 +152,7 @@ def generate_response(query, context_chunks):
 
         Answer:
         """
+    print("Mistral: ", os.getenv("MISTAL_API_KEY"))
     with Mistral(api_key=os.getenv("MISTRAL_API_KEY", ""),) as mistral:
 
         res = mistral.chat.complete(model="mistral-small", messages=[
@@ -168,45 +168,12 @@ def generate_response(query, context_chunks):
         print(i)
     return res.choices[0].message.content
 
+#---------------------------------------------------------------------------------------------------------------------|
 
+
+#---------------------------------------------------TOKENS AND INTERNAL FUNCTIONS-------------------------------------|
 def hash_password(password: str):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-def detect_intent(message: str):
-    msg = message.lower().strip()
-
-    greetings = ["hi", "hello", "hey", "yo", "hii"]
-    if any(msg == g or msg.startswith(g + " ") for g in greetings):
-        return "GREETING"
-
-    emotional_patterns = [
-        r"\bi am sad\b", r"\bi feel sad\b", r"\bi'm sad\b",
-        r"\blonely\b", r"\bempty\b", r"\bhurt\b",
-        r"\bcry\b", r"\bcrying\b", r"\bbreakup\b"
-    ]
-    if any(re.search(p, msg) for p in emotional_patterns):
-        return "EMOTION"
-
-    venting_patterns = [
-        r"\bfuck\b", r"\bbhenchod\b", r"\bshit\b",
-        r"\bangry\b", r"\bpissed\b", r"\bfrustrated\b"
-    ]
-    if any(re.search(p, msg) for p in venting_patterns):
-        return "VENTING"
-
-    acute_distress_patterns = [ r"heavy breathing", r"can't breathe", r"trapped", r"panic", r"nightmare", r"heart racing", r"scared to sleep", r"woke up gasping"]
-
-    if any(re.search(p, msg) for p in acute_distress_patterns):
-        return "ACUTE_DISTRESS"
-    
-    cbt_triggers = [
-        "how do i", "how can i", "what should i do",
-        "cope", "manage", "deal with", "handle"
-    ]
-    if any(t in msg for t in cbt_triggers):
-        return "CBT_QUERY"
-
-    return "GENERAL_CHAT"
 
 def verify_password(password: str, hashed: str):
     return bcrypt.checkpw(password.encode(), hashed.encode())
@@ -233,9 +200,6 @@ def serialize_mongo(obj):
         return {k: serialize_mongo(v) for k, v in obj.items()}
     return obj
 
-# -----------------------------
-# AUTH DEPENDENCY
-# -----------------------------
 async def get_current_user(authorization: str = Header(...)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(401, "Invalid auth header")
@@ -250,38 +214,8 @@ async def get_current_user(authorization: str = Header(...)):
     return user
 
 
-# -----------------------------
-# SCHEMAS
-# -----------------------------
-class RegisterModel(BaseModel):
-    name: str
-    email: str
-    password: str
-    phone: str
-
-class LoginModel(BaseModel):
-    email: str
-    password: str
-
-class JournalEntryModel(BaseModel):
-    date: str
-    mood: str
-    emoji: str
-    note: str
-
-class ChatModel(BaseModel):
-    message: str
-
-# -----------------------------
-# ROOT ROUTE
-# -----------------------------
-@app.get("/")
-def home():
-    return {"message": "SafeSpace FastAPI backend running."}
-
-# -----------------------------
-# USER REGISTRATION
-# -----------------------------
+#_-----------------------------------------------------------------------------------------|
+#-----------------------------------------------ROUTES-------------------------------------|
 @app.post("/api/register")
 def register(data: RegisterModel):
     if users.find_one({"email": data.email}):
@@ -300,117 +234,53 @@ def register(data: RegisterModel):
 
     return {"message": "User created"}
 
-# -----------------------------
-# LOGIN
-# -----------------------------
+@app.get("/")
+def home():
+    return {"message": "SafeSpace FastAPI backend running."}
+
 @app.post("/api/login")
 def login(data: LoginModel):
     print(data)
     user = users.find_one({"email": data.email})
     if not user or not verify_password(data.password, user["password"]):
+        print("Invalid cred")
         raise HTTPException(401, "Invalid credentials")
 
     token = create_access_token(str(user["_id"]))
     return {"token": token}
 
-# -----------------------------
-# GET USER DETAILS
-# -----------------------------
 @app.get("/api/user")
 def get_user(user=Depends(get_current_user)):
     user.pop("password", None)
     return serialize_mongo(user)
 
-# -----------------------------
-# GET NOTIFICATIONS
-# -----------------------------
-@app.get("/api/notifications")
-def notifications(user=Depends(get_current_user)):
-    return serialize_mongo(user.get("notifications", []))
-
-# -----------------------------
-# SEND NOTIFICATION TO ADMIN
-# -----------------------------
-@app.post("/notify-admin")
-def notify_admin(data: dict, user=Depends(get_current_user)):
-    admin = users.find_one({"role": "admin"})
-    if not admin:
-        raise HTTPException(404, "Admin not found")
-
-    notification = {
-        "name": user["name"],
-        "email": user["email"],
-        "phone": user["phone"],
-        "tag": "Suicidal",
-        "text": data["message"],
-        "time": data["timestamp"],
-    }
-
-    users.update_one(
-        {"_id": admin["_id"]},
-        {"$push": {"notifications": notification}},
-    )
-
-    return {"status": "sent"}
-
-
-# -----------------------------
-# SAVE JOURNAL ENTRY
-# -----------------------------
-@app.post("/api/journal")
-def save_journal(data: JournalEntryModel, user=Depends(get_current_user)):
-    users.update_one(
-        {"_id": user["_id"]},
-        {"$push": {
-            "journal": {
-                "date": data.date,
-                "mood": data.mood,
-                "emoji": data.emoji,
-                "note": data.note,
-            }
-        }}
-    )
-    return {"message": "Journal saved"}
-
-# -----------------------------
-# FETCH JOURNAL ENTRIES
-# -----------------------------
-@app.get("/api/journal")
-def get_journal(user=Depends(get_current_user)):
-    return serialize_mongo(user.get("journal", []))
-
-
-# -----------------------------
-# RAG + GEMINI CHAT ENDPOINT
-# -----------------------------
-
 @app.post("/chat")
 def chat(data: ChatModel, user=Depends(get_current_user)):
-
-    from collections import defaultdict
-    conversation_store: dict[str, list] = defaultdict(list)
     
-    index, all_chunks = load_vector_store(index_path="RAG\\faiss_index.bin", chunks_path="RAG\chunks.pkl")
+    #index- all vectors, chunks- al text chunks
+    index, all_chunks = load_vector_store(index_path="RAG/faiss_index.bin", chunks_path="RAG/chunks.pkl")
+    print(index)
+    print(all_chunks)
 
     user_id = str(user["_id"])
     history = conversation_store[user_id]
 
-    relevant_chunks = retrieve(data.message, index, all_chunks, k=3)
-    rag_context = "\n\n".join(relevant_chunks) if relevant_chunks else "No specific context found."
 
     history_text = "\n".join([
-        f"{'User' if m['role'] == 'user' else 'Solace'}: {m['content']}"
-        for m in history[-8:]  # last 4 exchanges
+        f"{m['role'].capitalize()}: {m['content']}" for m in history[-8:]
     ]) or "This is the start of the conversation."
+    
+    relevant_chunks = retrieve(history_text+ "\nUser: "+data.message, index, all_chunks, k=3)
+    rag_context = "\n\n".join(relevant_chunks) if relevant_chunks else "No specific context found."
 
     previous_questions = [
         m['content'] for m in history 
         if m['role'] == 'assistant'
     ]
-    asked_already = "\n".join(previous_questions[-4:]) if previous_questions else "None"
+    
 
     prompt = data.message
-    response = generate_response(prompt, all_chunks)
+    response = generate_response(prompt, rag_context, history_text)
     reply=response or "I’m here with you."
 
     history.append({"role": "user",      "content": data.message})

@@ -13,6 +13,9 @@ export default function MoodJournal() {
   const [note, setNote] = useState("");
   const [entries, setEntries] = useState([]);
   const [user, setUser] = useState(null);
+  const backend= "https://safespace-chat.onrender.com";
+  const localhost= "http://127.0.0.1:8000"
+  const server = localhost
 
   const token = localStorage.getItem("token");
 
@@ -62,7 +65,7 @@ export default function MoodJournal() {
     const today = new Date().toISOString().split("T")[0];
     try {
       await axios.post(
-        "https://safespace-chat.onrender.com/api/journal",
+        server+"/api/journal",
         {
           date: today,
           mood: moods[selectedMood],
@@ -82,7 +85,7 @@ export default function MoodJournal() {
       setSelectedMood(null);
 
       const refreshed = await axios.get(
-      "https://safespace-chat.onrender.com/api/journal",
+      server+"/api/journal",
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -117,7 +120,7 @@ export default function MoodJournal() {
   // -----------------------------
   useEffect(() => {
     if (entries.length > 15 && mostCommonMood === "Terrible") {
-      axios.post("https://safespace-chat.onrender.com/notify-admin", {
+      axios.post(server+"/notify-admin", {
         message: "User showing prolonged distress",
         timestamp: new Date().toISOString(),
       });

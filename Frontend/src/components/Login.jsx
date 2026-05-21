@@ -8,6 +8,9 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const location = useLocation();
   const from = location.state?.from || '/';
+  const backend= "https://safespace-chat.onrender.com";
+  const localhost= "http://127.0.0.1:8000"
+  const server = localhost
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,7 +20,7 @@ export default function AuthPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://safespace-chat.onrender.com/api/login", {
+      const res = await axios.post(server+"/api/login", {
         email: formData.email,
         password: formData.password,
       });
@@ -34,7 +37,7 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       console.log(formData);
-      const res = await axios.post("https://safespace-chat.onrender.com/api/register", {
+      const res = await axios.post(server+"/api/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -46,6 +49,7 @@ export default function AuthPage() {
       setFormData({ name: "", email: "", password: "" });
     } catch (err) {
       console.error(err);
+      console.log(err.response.data);
       alert(err.response?.data?.error || 'Registration failed.');
     }
   };
