@@ -20,7 +20,7 @@ const ChatbotPage = () => {
 
   const backend= "https://safespace-chat.onrender.com";
   const localhost= "http://127.0.0.1:8000"
-  const server = localhost
+  const server = backend
   const [input, setInput] = useState("");
   const [user, setUser] = useState(null);
   const chatEndRef = useRef(null);

@@ -10,7 +10,7 @@ export default function AuthPage() {
   const from = location.state?.from || '/';
   const backend= "https://safespace-chat.onrender.com";
   const localhost= "http://127.0.0.1:8000"
-  const server = localhost
+  const server = backend
 
   const handleChange = (e) => {
     const { name, value } = e.target;
