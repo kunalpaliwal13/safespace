@@ -59,8 +59,10 @@ app.add_middleware(
 
 conversation_store: dict[str, list] = defaultdict(list)
 
+
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
 def retrieve(query, index, chunks, k=5):
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
     query_embedding = embedding_model.encode(query)
     # query_embedding = ollama.embeddings(
